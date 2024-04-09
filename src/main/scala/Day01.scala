@@ -29,7 +29,7 @@ object Day01 extends App:
     def taxiDistance: Int =
       x.abs + y.abs
 
-    def process(cmd: Cmd): Ikke =
+    infix def process(cmd: Cmd): Ikke =
       (dir, cmd.turn) match
         case (N, 'L') => copy(x = x - cmd.dist, dir = W)
         case (E, 'L') => copy(y = y + cmd.dist, dir = N)
