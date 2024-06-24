@@ -11,7 +11,6 @@ object Day03 extends App:
 
   def fromLine(s: String): List[Int] =
     val sides = s.trim.split("\\s+")
-    println(sides.mkString(","))
     List(sides(0).toInt, sides(1).toInt, sides(2).toInt)
 
   val input: List[List[Int]] =
