@@ -40,3 +40,7 @@ class TestSolutions extends AnyFunSuite:
                    |####..##..#..#.#..#.#..#..##..#....####...#...##.."""
                    .stripMargin)(actual = Day08.answer2)
   }
+  test("Day09") {
+    assertResult(112830)(actual = Day09.answer1)
+    assertResult(10931789799L)(actual = Day09.answer2)
+  }
