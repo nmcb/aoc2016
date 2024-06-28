@@ -1,6 +1,3 @@
-import scala.io.*
-import scala.util.*
-
 import java.security.MessageDigest
 
 object Day05 extends App:

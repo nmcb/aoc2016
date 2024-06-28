@@ -1,5 +1,4 @@
 import scala.io.*
-import scala.util.*
 
 object Day04 extends App:
 
