@@ -2,9 +2,10 @@ import scala.io.*
 
 object Day07 extends App:
 
-  val day: String = this.getClass.getName.drop(3).init
+  val day = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  case class IP(supernets: List[String], hypernets: List[String]):
+  case class IP(supernets: Vector[String], hypernets: Vector[String]):
+
     private def isAbba(s: String): Boolean =
       s.length == 4 && s(0) != s(1) && s == s.reverse
 
@@ -25,11 +26,12 @@ object Day07 extends App:
 
 
   object IP:
+
     def fromString(s: String): IP =
-      def loop(todo: String, supernet: Boolean = true, supernets: List[String] = List.empty, hypernets: List[String] = List.empty): IP =
+      def loop(todo: String, supernet: Boolean = true, supernets: Vector[String] = Vector.empty, hypernets: Vector[String] = Vector.empty): IP =
         val chars = if supernet then todo.takeWhile(_ != '[') else todo.takeWhile(_ != ']')
         val rest  = todo.drop(chars.length + 1)
-        val nsupernets  = if  supernet then supernets  :+ chars else supernets
+        val nsupernets = if  supernet then supernets  :+ chars else supernets
         val nhypernets = if !supernet then hypernets :+ chars else hypernets
         if rest.length > 1 then
           loop(rest, !supernet, nsupernets, nhypernets)
@@ -37,17 +39,17 @@ object Day07 extends App:
           IP(nsupernets, nhypernets)
       loop(s)
 
-  val ips: List[IP] =
+  val ips: Vector[IP] =
     Source
       .fromResource(s"input$day.txt")
       .getLines
       .map(IP.fromString)
-      .toList
+      .toVector
 
   val start1: Long = System.currentTimeMillis
   val answer1: Int = ips.count(_.hasTLS)
-  println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
+  println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
   val start2: Long = System.currentTimeMillis
   val answer2: Int = ips.count(_.hasSSL)
-  println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
+  println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
