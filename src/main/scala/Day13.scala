@@ -60,16 +60,3 @@ object Day13 extends App:
   val start2  = System.currentTimeMillis
   val answer2 = solve2(start = Pos(1,1)).size
   println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
-
-/*
-
-  0123456789
-0 0#.####.##
-1 00#00#...#
-2 #0000##...
-3 ###0#.###.
-4 .##0.#..#.
-5 ..##....#.
-6 #...##.###
-
-*/
