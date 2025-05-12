@@ -1,75 +1,49 @@
-import scala.collection.*
+import java.security.MessageDigest
 
 object Day14 extends App:
 
   val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  case class Pos(x: Int, y: Int):
+  val md5  = MessageDigest.getInstance("MD5")
+  val salt = "zpqevtbw"
 
-    infix def +(that: Pos): Pos =
-      Pos(x + that.x, y + that.y)
+  val Three = "(.)\\1{2}".r.unanchored
+  val Five  = "(.)\\1{4}".r.unanchored
 
-    def isOpen: Boolean =
-      val number = x*x + 3*x + 2*x*y + y + y*y + Pos.favorite
-      val binary = number.toBinaryString
-      binary.count(_ == '1') % 2 == 0
+  def solve(hash: Int => String): Int =
 
-    def candidates: Vector[Pos] =
-      Vector(Pos(1,0), Pos(-1,0), Pos(0,1), Pos(0,-1))
-        .map(this + _)
-        .filter(c => c.x >= 0 && c.y >= 0)
+    def validate(window: Seq[(String,Int)]): Boolean =
+      window.head match
+        case (Three(t), _) =>
+          window.tail.exists:
+            case (Five(f), _) if f == t => true
+            case _                      => false
+        case _                          => false
 
-  object Pos:
-    val favorite = 1352
+    val (_, index) = Iterator.from(0).map(hash).zipWithIndex.sliding(1 + 1000).filter(validate).drop(63).next.head
+    index
 
-  /** breadth first search */
-  def solve1(start: Pos, target: Pos): Int =
-    val todo    = mutable.Queue(start)
-    val cache   = mutable.Map(start -> 0)
-    var current = todo.dequeue
 
-    while current != target do
-      val steps = cache(current) + 1
-      current.candidates.filter(_.isOpen).foreach: next =>
-        if !cache.contains(next) || steps < cache(next) then
-          cache(next) = steps
-          todo.enqueue(next)
-      current = todo.dequeue
 
-    cache(target)
+  val HEX_CHARS = "0123456789abcdef".toCharArray
+  extension (bytes: Array[Byte])
+    def toHexString: String =
+      val sb: StringBuffer = StringBuffer(bytes.length * 2)
+      for b <- bytes do
+        sb.append(HEX_CHARS((b & 0xF0) >> 4))
+        sb.append(HEX_CHARS(b & 0x0F))
+      sb.toString
+
+  def hash(string: String): String =
+    md5.digest(string.getBytes).toHexString
 
   val start1  = System.currentTimeMillis
-  val answer1 = solve1(start = Pos(1,1), target = Pos(31,39))
+  val answer1 = solve(index => hash(s"$salt$index"))
   println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  /** breadth first search */
-  def solve2(start: Pos): Map[Pos,Int] =
-    val todo = mutable.Queue(start)
-    val cache = mutable.Map(start -> 0)
-
-    while todo.nonEmpty do
-      val current = todo.dequeue
-      val cost = cache(current) + 1
-      current.candidates.filter(_.isOpen).foreach: next =>
-        if (!cache.contains(next) || cost < cache(next)) && cost <= 50 then
-          cache(next) = cost
-          todo.enqueue(next)
-
-    cache.toMap
+  def stretchedHash(string: String): String =
+    Iterator.iterate(string)(hash).drop(1 + 2016).next
 
   val start2  = System.currentTimeMillis
-  val answer2 = solve2(start = Pos(1,1)).size
+  val answer2 = solve(index => stretchedHash(s"salt$index"))
   println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
-
-/*
-
-  0123456789
-0 0#.####.##
-1 00#00#...#
-2 #0000##...
-3 ###0#.###.
-4 .##0.#..#.
-5 ..##....#.
-6 #...##.###
-
-*/
