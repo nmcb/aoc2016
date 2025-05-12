@@ -1,10 +1,11 @@
-import scala.io._
-import scala.util._
+import scala.annotation.tailrec
+import scala.io.Source
+import scala.util.Try
 
 object Day01 extends App:
 
   val day: String =
-    this.getClass.getName.drop(3).init
+    getClass.getSimpleName.filter(_.isDigit).mkString
 
   case class Cmd(turn: Char, dist: Int)
 
@@ -23,59 +24,51 @@ object Day01 extends App:
 
   case class Ikke(x: Int, y: Int, dir: Dir):
 
-    def manhattanDistance: Int =
-      taxiDistance
-
-    def taxiDistance: Int =
+    def manhattan: Int =
       x.abs + y.abs
 
-    infix def process(cmd: Cmd): List[Ikke] =
+    infix def process(cmd: Cmd): Vector[Ikke] =
       (dir, cmd.turn) match
-        case (N, 'L') => (1 to cmd.dist).map(dist => copy(x = x - dist, dir = W)).toList
-        case (E, 'L') => (1 to cmd.dist).map(dist => copy(y = y + dist, dir = N)).toList
-        case (S, 'L') => (1 to cmd.dist).map(dist => copy(x = x + dist, dir = E)).toList
-        case (W, 'L') => (1 to cmd.dist).map(dist => copy(y = y - dist, dir = S)).toList
-        case (N, 'R') => (1 to cmd.dist).map(dist => copy(x = x + dist, dir = E)).toList
-        case (E, 'R') => (1 to cmd.dist).map(dist => copy(y = y - dist, dir = S)).toList
-        case (S, 'R') => (1 to cmd.dist).map(dist => copy(x = x - dist, dir = W)).toList
-        case (W, 'R') => (1 to cmd.dist).map(dist => copy(y = y + dist, dir = N)).toList
+        case (N, 'L') => (1 to cmd.dist).map(dist => copy(x = x - dist, dir = W)).toVector
+        case (E, 'L') => (1 to cmd.dist).map(dist => copy(y = y + dist, dir = N)).toVector
+        case (S, 'L') => (1 to cmd.dist).map(dist => copy(x = x + dist, dir = E)).toVector
+        case (W, 'L') => (1 to cmd.dist).map(dist => copy(y = y - dist, dir = S)).toVector
+        case (N, 'R') => (1 to cmd.dist).map(dist => copy(x = x + dist, dir = E)).toVector
+        case (E, 'R') => (1 to cmd.dist).map(dist => copy(y = y - dist, dir = S)).toVector
+        case (S, 'R') => (1 to cmd.dist).map(dist => copy(x = x - dist, dir = W)).toVector
+        case (W, 'R') => (1 to cmd.dist).map(dist => copy(y = y + dist, dir = N)).toVector
         case _        => sys.error("boom!")
 
   object Ikke:
+
     def airDrop: Ikke =
       Ikke(0, 0, N)
 
-  val commands: List[Cmd] =
+  val commands: Vector[Cmd] =
     Source
       .fromResource(s"input$day.txt")
       .mkString.split(',')
       .map(Cmd.fromString)
-      .toList
+      .toVector
 
-  val start1: Long =
-    System.currentTimeMillis
+  val start1: Long = System.currentTimeMillis
+  val answer1: Int = commands.foldLeft(Vector(Ikke.airDrop))(_.last process _).last.manhattan
+  println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  val answer1: Int =
-    commands.foldLeft(List(Ikke.airDrop))(_.last process _).last.taxiDistance
+  @tailrec
+  def solve(commands: Vector[Cmd], path: Vector[Ikke]): Ikke =
 
-  println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
-
-  val start2: Long =
-    System.currentTimeMillis
-
-  def loop(commands: List[Cmd], path: List[Ikke]): Ikke =
-
-    def twice(test: List[Ikke], visited: List[Ikke]): Option[Ikke] =
+    @tailrec
+    def twice(test: Vector[Ikke], visited: Vector[Ikke]): Option[Ikke] =
       test match
-        case Nil                                                                     => None
-        case h :: t if visited.find(ikke => ikke.x == h.x && ikke.y == h.y).nonEmpty => Some(h)
-        case _ :: t                                                                  => twice(t, visited)
+        case Vector()                                                         => None
+        case h +: t if visited.exists(ikke => ikke.x == h.x && ikke.y == h.y) => Some(h)
+        case _ +: t                                                           => twice(t, visited)
+        case _                                                                => sys.error("boom!")
 
     val next = path.last.process(commands.head)
-    if twice(next, path).nonEmpty then twice(next, path).get else loop(commands.tail :+ commands.head, path :++ next)
+    if twice(next, path).nonEmpty then twice(next, path).get else solve(commands.tail :+ commands.head, path :++ next)
 
-  val answer2: Int =
-    loop(commands, List(Ikke.airDrop)).manhattanDistance
-
-
+  val start2: Long = System.currentTimeMillis
+  val answer2: Int = solve(commands, Vector(Ikke.airDrop)).manhattan
   println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")

@@ -2,54 +2,40 @@ import java.security.MessageDigest
 
 object Day05 extends App:
 
-  val day: String = this.getClass.getName.drop(3).init
+  val day: String = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  val id = "ffykfhsq"
+  val id    = "ffykfhsq"
 
-  def hex(bytes: Array[Byte]): String =
-    bytes.map("%02X" format _).mkString
+  def solve1(input: String): String =
+    val md5    = MessageDigest.getInstance("MD5")
+    val buffer = collection.mutable.ArrayBuffer[String]()
+    var index  = 0
 
-  val digest: MessageDigest =
-    MessageDigest.getInstance("MD5")
+    while buffer.size < 8 do
+      val hash = md5.digest(s"$input$index".getBytes)
+      index += 1
+      if hash(0) == 0 && hash(1) == 0 && (hash(2) & 0xF0) == 0 then
+        buffer += (hash(2) & 0x0F).toHexString
 
-  def decrypt1(counter: Int = 0, code: String = ""): String =
-    digest.reset()
-    val hash   = digest.digest(s"$id$counter".getBytes("UTF-8"))
-    val chars  = hex(hash)
+    buffer.mkString
 
-    if chars.startsWith("00000") then
-      val next = code + chars(5)
-      if next.length == 8 then
-        next
-      else
-        decrypt1(counter = counter + 1, code = next)
-    else
-      decrypt1(counter = counter + 1, code = code)
+  val start1  = System.currentTimeMillis
+  val answer1 = solve1(id).toLowerCase
+  println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  val start1: Long    = System.currentTimeMillis
-  val answer1: String = decrypt1().toLowerCase
-  println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
+  def solve2(input: String): String =
+    val md5    = MessageDigest.getInstance("MD5")
+    val buffer = collection.mutable.Map[Int,String]()
+    var index  = 0
 
-  def decrypt2(counter: Int = 0, codes: Map[Int,Char] = Map.empty): String =
-    digest.reset()
-    val hash = digest.digest(s"$id$counter".getBytes("UTF-8"))
-    val chars = hex(hash)
+    while buffer.size < 8 do
+      val hash = md5.digest(s"$input$index".getBytes)
+      index += 1
+      if hash(0) == 0 && hash(1) == 0 && (hash(2) & 0xF0) == 0 && hash(2) < 8 && !buffer.contains(hash(2)) then
+        buffer += hash(2).toInt -> ((hash(3) >> 4) & 0x0F).toHexString
 
-    if chars.startsWith("00000") then
-      val index = chars(5) - '0'
-      val char  = chars(6)
-
-      if index >= 0 && index < 8 && !codes.contains(index) then
-        val next = codes + (index -> char)
-        if next.size == 8 then
-          next.toList.sortBy(_._1).map(_._2).mkString
-        else
-          decrypt2(counter = counter + 1, codes = next)
-      else
-        decrypt2(counter = counter + 1, codes = codes)
-    else
-      decrypt2(counter = counter + 1, codes = codes)
+    (0 to 7).map(buffer).mkString
 
   val start2: Long    = System.currentTimeMillis
-  val answer2: String = decrypt2().toLowerCase
-  println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
+  val answer2: String = solve2(id).toLowerCase
+  println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")

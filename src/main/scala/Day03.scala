@@ -2,32 +2,39 @@ import scala.io.*
 
 object Day03 extends App:
 
-  val day: String =
-    this.getClass.getName.drop(3).init
+  val day = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  def isValid(triangle: List[Int]): Boolean =
-    triangle.permutations.forall(l => l(0) + l(1) > l(2))
+  type Triangle = Vector[Int]
 
-  def fromLine(s: String): List[Int] =
-    val sides = s.trim.split("\\s+")
-    List(sides(0).toInt, sides(1).toInt, sides(2).toInt)
+  extension (triangle: Triangle)
+    def a: Int = triangle(0)
+    def b: Int = triangle(1)
+    def c: Int = triangle(2)
 
-  val input: List[List[Int]] =
+    def isValid: Boolean = triangle.permutations.forall(t => t.a + t.b > t.c)
+
+  object Triangle:
+
+    def fromLine(s: String): Vector[Int] =
+      val sides = s.trim.split("\\s+")
+      Vector(sides(0).toInt, sides(1).toInt, sides(2).toInt)
+
+  val triangles: Vector[Triangle] =
     Source
       .fromResource(s"input$day.txt")
       .getLines
-      .map(fromLine)
-      .toList
+      .map(Triangle.fromLine)
+      .toVector
 
-  val start1: Long = System.currentTimeMillis
-  val answer1: Int = input.filter(isValid).size
-  println(s"Answer day $day part 1: ${answer1} [${System.currentTimeMillis - start1}ms]")
+  val start1  = System.currentTimeMillis
+  val answer1 = triangles.count(_.isValid)
+  println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  def triangulate(todo: List[Int], acc: List[List[Int]] = List.empty): List[List[Int]] =
+  def triangulate(todo: Vector[Int], result: Vector[Triangle] = Vector.empty): Vector[Triangle] =
     todo match
-      case a :: b :: c :: rest => triangulate(rest, acc :+ List(a, b, c))
-      case _ => acc
+      case a +: b +: c +: rest => triangulate(rest, result :+ Vector(a, b, c))
+      case _                   => result
 
-  val start2: Long    = System.currentTimeMillis
-  val answer2: Int = triangulate(input.transpose.flatten).filter(isValid).size
-  println(s"Answer day $day part 2: ${answer2} [${System.currentTimeMillis - start2}ms]")
+  val start2  = System.currentTimeMillis
+  val answer2 = triangulate(triangles.transpose.flatten).count(_.isValid)
+  println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
