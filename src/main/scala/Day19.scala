@@ -1,27 +1,25 @@
-import scala.io.Source
-
 object Day19 extends App:
 
   val day = getClass.getSimpleName.filter(_.isDigit).mkString
 
-  def next(row: String): String =
-    ("." + row + ".")
-      .sliding(3)
-      .map:
-        case "^^." | ".^^" | "^.." | "..^" => '^'
-        case _                             => '.'
-      .mkString
+  val input = 3017957
 
-  def safe(row: String): Int =
-    row.count(_ == '.')
-
-  val input   = Source.fromResource(s"input$day.txt").mkString.trim
+  /** @see [[https://youtu.be/uCsD3ZGzMgE]] */
+  def solve1(input: Int): Int =
+    val l = input - Integer.highestOneBit(input)
+    l * 2 + 1
 
   val start1  = System.currentTimeMillis
-  val answer1 = Iterator.iterate(input)(next).map(safe).take(40).sum
+  val answer1 = solve1(input)
   println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  val start2  = System.currentTimeMillis
-  val answer2 = Iterator.iterate(input)(next).map(safe).take(400000).sum
-  println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
 
+  /** @see [[https://www.reddit.com/r/adventofcode/comments/5j4lp1/comment/dbdf50n/]] */
+  def solve2(input: Int): Int =
+    var i = 1
+    while i * 3 < input do i *= 3
+    input - i
+
+  val start2  = System.currentTimeMillis
+  val answer2 = solve2(input)
+  println(s"Answer day $day part 2: $answer2 [${System.currentTimeMillis - start2}ms]")
