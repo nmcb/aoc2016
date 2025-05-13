@@ -1,4 +1,4 @@
- object Day19 extends App:
+object Day19 extends App:
 
   val day = getClass.getSimpleName.filter(_.isDigit).mkString
 
