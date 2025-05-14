@@ -46,7 +46,7 @@ object Day21 extends App:
         case SwapPosition(x, y)      => s.swapPosition(x, y)
         case SwapLetter(a, b)        => s.swapLetter(a, b)
         case Rotate("left", n)       => s.rotateLeft(n)
-        case Rotate("right", n)      => s.rotateLeft(n)
+        case Rotate("right", n)      => s.rotateRight(n)
         case RotateByPosition(a)     => s.rotateByPositionRight(a)
         case ReverseByPosition(x, y) => s.reverseByPosition(x, y)
         case Move(x, y)              => s.move(x, y)
