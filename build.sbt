@@ -17,5 +17,5 @@ scalacOptions ++= Seq(
   "-unchecked",
   "-Werror",
   "-deprecation",
-//  "-explain",
+  "-explain",
 )
