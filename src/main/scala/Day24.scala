@@ -13,13 +13,18 @@ object Day24 extends App:
     def neighbours: Set[Pos] =
       Set(Pos(-1, 0), Pos(1, 0), Pos(0, -1), Pos(0, 1)).map(_ + this)
 
-  val(grid: Set[Pos], nodes: Map[Int,Pos]) =
-    val lines = Source.fromResource("AdventOfCode2016/Day24.txt").getLines.toVector
+  type Grid      = Set[Pos]
+  type Nodes     = Map[Int,Pos]
+  type Distances = Map[Int,Map[Int,Int]]
+
+  val(grid: Grid, nodes: Nodes) =
+    val lines = Source.fromResource(s"input$day.txt").getLines.toVector
     val grid  = for y <- lines.indices ; x <- lines.head.indices if lines(y)(x) != '#'  yield Pos(x, y)
     val nodes = for y <- lines.indices ; x <- lines.head.indices if lines(y)(x).isDigit yield lines(y)(x).asDigit -> Pos(x, y)
     (grid.toSet, nodes.toMap)
 
-  def steps(grid: Set[Pos], start: Pos, end: Pos): Int =
+  /** breath first search */
+  def distance(grid: Grid, start: Pos, end: Pos): Int =
     import scala.collection.*
     val steps = mutable.Map(start -> 0)
     val todo  = mutable.Queue(start)
@@ -34,27 +39,36 @@ object Day24 extends App:
           todo.enqueue(next)
     sys.error("boom!")
 
-  def network(grid: Set[Pos], nodes: Map[Int,Pos]): Map[Int,Map[Int,Int]] =
+  def distances(grid: Grid, nodes: Nodes): Distances =
     nodes.transform: (_, start) =>
       nodes.transform: (_, end) =>
-        steps(grid, start, end)
+        distance(grid, start, end)
 
-  def tsp(graph: Map[Int, Map[Int,Int]], routes: Iterator[Seq[Int]]): Int =
-    routes.map(_.sliding(2).map(next => graph(next.head)(next.last)).sum).min
+  /** brute force traveling salesman */
 
-  def solve1(grid: Set[Pos], nodes: Map[Int,Pos]): Int =
-    val graph = network(grid, nodes)
-    val routes = (1 to nodes.keys.max).permutations.map(_.prepended(0))
-    tsp(graph, routes)
+  type Routes = Vector[Vector[Int]]
+
+  def shortestPath(distances: Distances, routes: Routes): Int =
+    routes
+      .map: route =>
+        route.sliding(2).map: step =>
+          distances(step.head)(step.last)
+        .sum
+      .min
+
+  def solve1(grid: Grid, nodes: Nodes): Int =
+    val graph  = distances(grid, nodes)
+    val routes = (1 to nodes.keys.max).toVector.permutations.map(0 +: _).toVector
+    shortestPath(graph, routes)
 
   val start1  = System.currentTimeMillis
   val answer1 = solve1(grid, nodes)
   println(s"Answer day $day part 1: $answer1 [${System.currentTimeMillis - start1}ms]")
 
-  def solve2(grid: Set[Pos], nodes: Map[Int, Pos]): Int =
-    val graph = network(grid, nodes)
-    val routes = (1 to nodes.keys.max).permutations.map(_.prepended(0).appended(0))
-    tsp(graph, routes)
+  def solve2(grid: Grid, nodes: Nodes): Int =
+    val graph  = distances(grid, nodes)
+    val routes = (1 to nodes.keys.max).toVector.permutations.map(0 +: _ :+ 0).toVector
+    shortestPath(graph, routes)
 
   val start2  = System.currentTimeMillis
   val answer2 = solve2(grid, nodes)
